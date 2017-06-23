@@ -73,7 +73,16 @@ function initDBConnection() {
         // Alternately you could point to a local database here instead of a
         // Bluemix service.
         // url will be in this format: https://username:password@xxxxxxxxx-bluemix.cloudant.com
-        dbCredentials.url = getDBCredentialsUrl(fs.readFileSync("vcap-local.json", "utf-8"));
+        //dbCredentials.url = getDBCredentialsUrl(fs.readFileSync("vcap-local.json", "utf-8"));
+        
+        if (fs.existsSync("vcap-local.json")) {
+           dbCredentials.url = getDBCredentialsUrl(fs.readFileSync("vcap-local.json", "utf-8"));
+        } else { // look for a container secret binding on mounted volume
+           if (fs.existsSync("/opt/cdb-service-bind/binding")) {
+              var binding = JSON.parse(fs.readFileSync('/opt/cdb-service-bind/binding', 'utf8'));
+              dbCredentials.url = binding.url;
+           }
+       }
     }
 
     cloudant = require('cloudant')(dbCredentials.url);
